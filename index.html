@@ -278,7 +278,7 @@ td.center{text-align:center}
 </div>
 
 <div class="disclaimer">
-  🔄 Auto-updated: Apr 3, 2026  12:53 PM UTC · ⚠ Sources: NOAA Storm Prediction Center (spc.noaa.gov) · NOAA NWS API (api.weather.gov) · FedEx Service Alerts (fedex.com) ·
+  🔄 Auto-updated: Apr 3, 2026  12:53 PM UTC · 🔄 Auto-updated: Apr 3, 2026  07:27 PM UTC · ⚠ Sources: NOAA Storm Prediction Center (spc.noaa.gov) · NOAA NWS API (api.weather.gov) · FedEx Service Alerts (fedex.com) ·
   Severe alerts only (HIGH + MODERATE-HIGH) · Perishable risk based on Chicago-origin transit times + interruption probability ·
   Confirm day-of status at <a href="https://www.fedex.com/en-us/service-alerts.html" target="_blank">fedex.com/service-alerts</a> ·
   Lou Malnati's Pizzeria Logistics — Chicago, IL · Data updated automatically via NOAA API
@@ -295,7 +295,18 @@ const PERI_CLR = {CRITICAL:'b-peri-crit', HIGH:'b-peri-high', MODERATE:'b-peri-m
 const PERI_SCORE = {CRITICAL:3, HIGH:2, MODERATE:1};
 
 // ═══ DATA ════════════════════════════════════════════════
-const STATE_DATA = [];
+const STATE_DATA = [
+  {state:"Michigan",abbr:"MI",impact:78,level:"HIGH",weather:"Ice Storm Warning issued April 3 at 12:19PM EDT until April 4 at 5:00PM EDT by NWS Gaylord MI",noaa:"ACTIVE",ground:"DELAYED",express:"DELAYED",start:"Sat Apr 4  12:00 AM CDT",end:"Sat Apr 4  12:00 PM CDT",pct:78,note:"Live NOAA alert — verify at fedex.com/service-alerts"},
+  {state:"Nebraska",abbr:"NE",impact:70,level:"HIGH",weather:"Severe Thunderstorm Warning issued April 3 at 2:23PM CDT until April 3 at 3:00PM CDT by NWS Omaha/Valley NE",noaa:"ACTIVE",ground:"DELAYED",express:"DELAYED",start:"Fri Apr 3  9:23 AM CDT",end:"Fri Apr 3  10:00 AM CDT",pct:70,note:"Live NOAA alert — verify at fedex.com/service-alerts"},
+  {state:"Texas",abbr:"TX",impact:70,level:"HIGH",weather:"High Wind Warning issued April 3 at 11:18AM MDT until April 4 at 12:00PM MDT by NWS Midland/Odessa TX",noaa:"ACTIVE",ground:"DELAYED",express:"DELAYED",start:"Fri Apr 3  7:00 PM CDT",end:"Sat Apr 4  7:00 AM CDT",pct:70,note:"Live NOAA alert — verify at fedex.com/service-alerts"},
+  {state:"New Mexico",abbr:"NM",impact:70,level:"HIGH",weather:"High Wind Warning issued April 3 at 11:18AM MDT until April 4 at 12:00PM MDT by NWS Midland/Odessa TX",noaa:"ACTIVE",ground:"DELAYED",express:"DELAYED",start:"Fri Apr 3  7:00 PM CDT",end:"Sat Apr 4  7:00 AM CDT",pct:70,note:"Live NOAA alert — verify at fedex.com/service-alerts"},
+  {state:"Wyoming",abbr:"WY",impact:70,level:"HIGH",weather:"High Wind Warning issued April 3 at 1:22AM MDT until April 3 at 9:00PM MDT by NWS Cheyenne WY",noaa:"ACTIVE",ground:"DELAYED",express:"DELAYED",start:"Fri Apr 3  4:00 AM CDT",end:"Fri Apr 3  4:00 PM CDT",pct:70,note:"Live NOAA alert — verify at fedex.com/service-alerts"},
+  {state:"Illinois",abbr:"IL",impact:52,level:"MODERATE-HIGH",weather:"Flood Warning issued April 3 at 11:58AM CDT by NWS Chicago IL",noaa:"ACTIVE",ground:"POSS. IMPACT",express:"POSS. IMPACT",start:"Fri Apr 3  1:00 PM CDT",end:"—",pct:52,note:"Live NOAA alert — verify at fedex.com/service-alerts"},
+  {state:"Wisconsin",abbr:"WI",impact:52,level:"MODERATE-HIGH",weather:"Flood Warning issued April 3 at 11:43AM CDT until April 7 at 7:00AM CDT by NWS Milwaukee/Sullivan WI",noaa:"ACTIVE",ground:"POSS. IMPACT",express:"POSS. IMPACT",start:"Fri Apr 3  8:00 PM CDT",end:"Tue Apr 7  2:00 AM CDT",pct:52,note:"Live NOAA alert — verify at fedex.com/service-alerts"},
+  {state:"Indiana",abbr:"IN",impact:52,level:"MODERATE-HIGH",weather:"Flood Warning issued April 3 at 12:14PM EDT by NWS Indianapolis IN",noaa:"ACTIVE",ground:"POSS. IMPACT",express:"POSS. IMPACT",start:"Sat Apr 4  12:25 AM CDT",end:"—",pct:52,note:"Live NOAA alert — verify at fedex.com/service-alerts"},
+  {state:"New York",abbr:"NY",impact:52,level:"MODERATE-HIGH",weather:"Flood Warning issued April 3 at 10:48AM EDT by NWS Binghamton NY",noaa:"ACTIVE",ground:"POSS. IMPACT",express:"POSS. IMPACT",start:"Fri Apr 3  5:48 AM CDT",end:"—",pct:52,note:"Live NOAA alert — verify at fedex.com/service-alerts"},
+  {state:"Colorado",abbr:"CO",impact:52,level:"MODERATE-HIGH",weather:"Red Flag Warning issued April 3 at 12:53AM MDT until April 3 at 8:00PM MDT by NWS Pueblo CO",noaa:"ACTIVE",ground:"POSS. IMPACT",express:"POSS. IMPACT",start:"Fri Apr 3  6:00 AM CDT",end:"Fri Apr 3  3:00 PM CDT",pct:52,note:"Live NOAA alert — verify at fedex.com/service-alerts"}
+];
 
 // ZIP: [zip,city,state,abbr,level,weather,ground,express,start,end,pct,days,note]
 let ZIP_REF = [];  // loaded from zips.json
