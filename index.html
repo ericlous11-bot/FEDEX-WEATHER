@@ -1,6 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+(function(){
+  var k=sessionStorage.getItem('lm_auth');
+  if(k==='ok') return;
+  var attempt=0;
+  while(attempt<3){
+    var p=window.prompt('Lou Malnati\'s — Enter password to continue:','');
+    if(p===null){document.documentElement.innerHTML='';break;}
+    if(p==='TOCRocks!'){sessionStorage.setItem('lm_auth','ok');break;}
+    attempt++;
+    if(attempt<3) window.alert('Incorrect password. Try again.');
+    else{document.documentElement.innerHTML='<body style="font-family:Arial;text-align:center;padding:60px;color:#555"><h2>Access Denied</h2><p>Too many incorrect attempts. Close and reopen the page to try again.</p></body>';break;}
+  }
+})();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lou Malnati's — FedEx Perishable Weather Alert</title>
@@ -140,54 +155,12 @@ td.center{text-align:center}
     </div>
   </div>
 
-  <div class="sec-hdr">7-Day Outlook — Chicago Route Impact (Confirmed NOAA Data, Mar 31 2026)</div>
+  <div class="sec-hdr" id="outlook-hdr">7-Day Outlook — Chicago Route Impact</div>
   <div class="sec-body">
     <table>
       <thead><tr><th>Event</th><th>NOAA Risk</th><th>Affected States</th><th>Primary Hazards</th><th>Peak Window</th><th>Express Impact</th><th>Ground Impact</th><th>Perishable Risk</th></tr></thead>
-      <tbody>
-        <tr>
-          <td><strong>Apr 1 Enhanced Risk</strong></td>
-          <td><span class="badge b-enhanced">ENHANCED</span></td>
-          <td>OK, KS, N TX</td>
-          <td>Supercells · 5% tornado · 30% damaging wind · Large hail</td>
-          <td style="white-space:nowrap;font-size:0.72rem">Wed Apr 1 12PM CDT<br>– Thu Apr 2 7AM CDT</td>
-          <td><span class="badge b-delayed">POSS. DELAY</span></td>
-          <td><span class="badge b-delayed">POSS. DELAY</span></td>
-          <td><span class="badge b-peri-crit">CRITICAL</span></td>
-        </tr>
-        <tr class="even">
-          <td><strong>Apr 1 Mid-Atlantic Wind</strong></td>
-          <td><span class="badge b-slight">SLIGHT</span></td>
-          <td>PA, MD, VA, OH, NJ, DE</td>
-          <td>Severe thunderstorms · 5% damaging wind · Heavy rain</td>
-          <td style="white-space:nowrap;font-size:0.72rem">Wed Apr 1 2PM EDT<br>– Thu Apr 2 6AM EDT</td>
-          <td><span class="badge b-impacted">POSS. IMPACT</span></td>
-          <td><span class="badge b-impacted">POSS. IMPACT</span></td>
-          <td><span class="badge b-peri-high">HIGH</span></td>
-        </tr>
-        <tr>
-          <td><strong>Apr 3 Secondary Signal</strong></td>
-          <td><span class="badge b-secondary">15% PROB</span></td>
-          <td>KS, NE, MO, IA</td>
-          <td>Severe thunderstorms · Tornado risk · Large hail</td>
-          <td style="white-space:nowrap;font-size:0.72rem">Fri Apr 3 8AM CDT<br>– Fri Apr 3 10PM CDT</td>
-          <td><span class="badge b-impacted">POSS. IMPACT</span></td>
-          <td><span class="badge b-impacted">POSS. IMPACT</span></td>
-          <td><span class="badge b-peri-mod">MODERATE</span></td>
-        </tr>
-        <tr class="even">
-          <td><strong>Apr 5+ Outlook</strong></td>
-          <td>—</td><td>Unknown</td><td>Predictability Too Low — insufficient model data</td>
-          <td>—</td><td>Monitor</td><td>Monitor</td><td>Monitor</td>
-        </tr>
-        <tr>
-          <td><strong>FedEx US Live Alerts</strong></td>
-          <td>—</td><td>None</td><td>No active US weather service alerts as of Mar 31, 2026</td>
-          <td>—</td>
-          <td><span class="badge b-ok">NORMAL</span></td>
-          <td><span class="badge b-ok">NORMAL</span></td>
-          <td><span class="badge b-peri-low">LOW</span></td>
-        </tr>
+      <tbody id="outlook-tbody">
+        <tr><td colspan="8" style="padding:20px;text-align:center;color:#888">Loading…</td></tr>
       </tbody>
     </table>
   </div>
@@ -224,12 +197,7 @@ td.center{text-align:center}
       <input type="text" id="zip-search" placeholder="ZIP, city, state…" oninput="filterZips()" style="width:160px">
       <label>State:</label>
       <select id="zip-state" onchange="filterZips()">
-        <option value="">All States</option>
-        <option>Oklahoma</option><option>Kansas</option><option>Texas</option>
-        <option>Pennsylvania</option><option>Maryland</option><option>Ohio</option>
-        <option>Virginia</option><option>New Jersey</option><option>Delaware</option>
-        <option>Nebraska</option><option>Missouri</option><option>Iowa</option>
-      </select>
+        <option value="">All States</option></select>
       <label>Service:</label>
       <select id="zip-svc" onchange="filterZips()">
         <option value="">Express + Ground</option>
@@ -310,10 +278,10 @@ td.center{text-align:center}
 </div>
 
 <div class="disclaimer">
-  ⚠ Sources: NOAA Storm Prediction Center (spc.noaa.gov) · NOAA NWS API (api.weather.gov) · FedEx Service Alerts (fedex.com) ·
+  🔄 Auto-updated: Apr 3, 2026  12:53 PM UTC · ⚠ Sources: NOAA Storm Prediction Center (spc.noaa.gov) · NOAA NWS API (api.weather.gov) · FedEx Service Alerts (fedex.com) ·
   Severe alerts only (HIGH + MODERATE-HIGH) · Perishable risk based on Chicago-origin transit times + interruption probability ·
   Confirm day-of status at <a href="https://www.fedex.com/en-us/service-alerts.html" target="_blank">fedex.com/service-alerts</a> ·
-  Lou Malnati's Pizzeria Logistics — Chicago, IL · Data as of Mar 31, 2026
+  Lou Malnati's Pizzeria Logistics — Chicago, IL · Data updated automatically via NOAA API
 </div>
 
 <script>
@@ -340,112 +308,10 @@ const PERI_CLR = {CRITICAL:'b-peri-crit', HIGH:'b-peri-high', MODERATE:'b-peri-m
 const PERI_SCORE = {CRITICAL:3, HIGH:2, MODERATE:1};
 
 // ═══ DATA ════════════════════════════════════════════════
-const STATE_DATA = [
-  {state:"Oklahoma",abbr:"OK",impact:78,level:"HIGH",weather:"Supercell Thunderstorms / Tornado Risk (5%) / Large Hail / Damaging Winds 30%",noaa:"ENHANCED",ground:"DELAYED",express:"DELAYED",start:"Wed Apr 1  12:00 PM CDT",end:"Thu Apr 2  7:00 AM CDT",pct:78,note:"OKC & Tulsa in 5% tornado contour; Lawton & Enid in 30% wind core"},
-  {state:"Kansas",abbr:"KS",impact:75,level:"HIGH",weather:"Supercell / Tornado (5%) / Damaging Winds (30%) / Large Hail",noaa:"ENHANCED",ground:"DELAYED",express:"DELAYED",start:"Wed Apr 1  12:00 PM CDT",end:"Thu Apr 2  7:00 AM CDT",pct:76,note:"Wichita & Overland Park in 5% tornado + 30% wind — highest prob Apr 1"},
-  {state:"Texas",abbr:"TX",impact:68,level:"HIGH",weather:"Damaging Winds 30% (core) / Supercell / Large Hail / Tornado Risk",noaa:"ENHANCED",ground:"DELAYED",express:"DELAYED",start:"Wed Apr 1  12:00 PM CDT",end:"Thu Apr 2  7:00 AM CDT",pct:70,note:"Wichita Falls in 30% wind core; Dallas/FW in broad 5% wind zone"},
-  {state:"Virginia",abbr:"VA",impact:55,level:"MODERATE-HIGH",weather:"Severe Thunderstorms / Damaging Winds (5%) / Heavy Rain",noaa:"SLIGHT",ground:"IMPACTED",express:"IMPACTED",start:"Wed Apr 1  2:00 PM EDT",end:"Thu Apr 2  6:00 AM EDT",pct:57,note:"Richmond & NoVA corridors; Mid-Atlantic broad 5% wind zone"},
-  {state:"Maryland",abbr:"MD",impact:54,level:"MODERATE-HIGH",weather:"Severe Thunderstorms / Damaging Winds (5%) / Heavy Rain",noaa:"SLIGHT",ground:"IMPACTED",express:"IMPACTED",start:"Wed Apr 1  2:00 PM EDT",end:"Thu Apr 2  6:00 AM EDT",pct:56,note:"Baltimore in NOAA broad 5% wind zone; BWI FedEx monitoring"},
-  {state:"Pennsylvania",abbr:"PA",impact:53,level:"MODERATE-HIGH",weather:"Severe Thunderstorms / Damaging Winds (5%) / Heavy Rain",noaa:"SLIGHT",ground:"IMPACTED",express:"IMPACTED",start:"Wed Apr 1  2:00 PM EDT",end:"Thu Apr 2  6:00 AM EDT",pct:55,note:"Philadelphia in NOAA confirmed broad 5% wind contour"},
-  {state:"Ohio",abbr:"OH",impact:52,level:"MODERATE-HIGH",weather:"Severe Thunderstorms / Damaging Winds (5%) / Heavy Rain",noaa:"SLIGHT",ground:"IMPACTED",express:"IMPACTED",start:"Wed Apr 1  2:00 PM EDT",end:"Thu Apr 2  6:00 AM EDT",pct:54,note:"Columbus in broad 5% wind zone; 1-day ground from Chicago"},
-  {state:"New Jersey",abbr:"NJ",impact:50,level:"MODERATE-HIGH",weather:"Severe Thunderstorms / Damaging Winds / Heavy Rain",noaa:"SLIGHT",ground:"IMPACTED",express:"IMPACTED",start:"Wed Apr 1  3:00 PM EDT",end:"Thu Apr 2  5:00 AM EDT",pct:52,note:"Newark FedEx hub — Mid-Atlantic zone"},
-  {state:"Delaware",abbr:"DE",impact:48,level:"MODERATE-HIGH",weather:"Severe Thunderstorms / Damaging Winds / Heavy Rain",noaa:"SLIGHT",ground:"IMPACTED",express:"IMPACTED",start:"Wed Apr 1  3:00 PM EDT",end:"Thu Apr 2  5:00 AM EDT",pct:50,note:"Wilmington corridor in Mid-Atlantic broad zone"},
-  {state:"Nebraska",abbr:"NE",impact:60,level:"MODERATE-HIGH",weather:"Severe Thunderstorms / Tornado Risk / Large Hail (Day 4 15% signal)",noaa:"SECONDARY-15",ground:"IMPACTED",express:"DELAYED",start:"Fri Apr 3  8:00 AM CDT",end:"Fri Apr 3  10:00 PM CDT",pct:62,note:"Day 4 secondary; Omaha & Lincoln I-80 corridor"},
-  {state:"Missouri",abbr:"MO",impact:58,level:"MODERATE-HIGH",weather:"Severe Thunderstorms / Tornado Risk / Large Hail (Day 4 15% signal)",noaa:"SECONDARY-15",ground:"IMPACTED",express:"DELAYED",start:"Fri Apr 3  8:00 AM CDT",end:"Fri Apr 3  10:00 PM CDT",pct:60,note:"Day 4 secondary; KCMO & STL — 1-day ground from Chicago"},
-  {state:"Iowa",abbr:"IA",impact:56,level:"MODERATE-HIGH",weather:"Severe Thunderstorms / Tornado Risk / Large Hail (Day 4 15% signal)",noaa:"SECONDARY-15",ground:"IMPACTED",express:"IMPACTED",start:"Fri Apr 3  8:00 AM CDT",end:"Fri Apr 3  10:00 PM CDT",pct:58,note:"Day 4 secondary; Des Moines & Cedar Rapids — 1-day ground from Chicago"},
-];
+const STATE_DATA = [];
 
 // ZIP: [zip,city,state,abbr,level,weather,ground,express,start,end,pct,days,note]
-const ZIP_DATA = [
-  ["73101","Oklahoma City","Oklahoma","OK","HIGH","Supercell / Tornado Risk 5% / Large Hail","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",80,2,"OKC in 5% tornado contour"],
-  ["73102","Oklahoma City","Oklahoma","OK","HIGH","Supercell / Tornado Risk 5% / Large Hail","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",80,2,"OKC metro storm initiation area"],
-  ["73103","Oklahoma City","Oklahoma","OK","HIGH","Supercell / Tornado Risk 5%","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",79,2,"OKC corridor"],
-  ["73104","Oklahoma City Downtown","Oklahoma","OK","HIGH","Supercell / Tornado Risk 5%","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",79,2,"Downtown OKC"],
-  ["73105","Oklahoma City","Oklahoma","OK","HIGH","Supercell / Tornado 5% / Damaging Winds","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",78,2,"OKC metro"],
-  ["73106","Oklahoma City","Oklahoma","OK","HIGH","Supercell / Tornado Risk 5%","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",78,2,"W OKC corridor"],
-  ["73107","Oklahoma City West","Oklahoma","OK","HIGH","Supercell / Tornado Risk 5%","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",77,2,"W OKC storm initiation zone"],
-  ["73109","Oklahoma City South","Oklahoma","OK","HIGH","Supercell / Tornado Risk 5%","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",77,2,"S OKC area"],
-  ["73110","Oklahoma City East","Oklahoma","OK","HIGH","Supercell / Damaging Winds","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",76,2,"E OKC metro"],
-  ["73112","Oklahoma City NW","Oklahoma","OK","HIGH","Supercell / Tornado Risk 5%","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",77,2,"NW OKC"],
-  ["74101","Tulsa","Oklahoma","OK","HIGH","Supercell / Tornado Risk 5% / Large Hail","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",78,2,"Tulsa in 5% tornado contour"],
-  ["74102","Tulsa","Oklahoma","OK","HIGH","Supercell / Large Hail","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",77,2,"Tulsa metro"],
-  ["74103","Tulsa Downtown","Oklahoma","OK","HIGH","Supercell / Tornado Risk 5%","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",77,2,"Downtown Tulsa"],
-  ["74104","Tulsa Midtown","Oklahoma","OK","HIGH","Supercell / Damaging Winds","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",76,2,"Midtown Tulsa"],
-  ["74105","Tulsa South","Oklahoma","OK","HIGH","Supercell / Tornado Risk","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",76,2,"S Tulsa corridor"],
-  ["73501","Lawton","Oklahoma","OK","HIGH","Damaging Winds 30% / Supercell / Large Hail","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",80,2,"Lawton in 30% damaging wind core"],
-  ["73701","Enid","Oklahoma","OK","HIGH","Damaging Winds 30% / Supercell / Large Hail","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",80,2,"Enid in 30% damaging wind core"],
-  ["73521","Altus","Oklahoma","OK","HIGH","Damaging Winds 30% / Supercell","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",79,2,"Altus in 30% wind core SW OK"],
-  ["67201","Wichita","Kansas","KS","HIGH","Supercell / Tornado 5% / Damaging Winds 30% / Large Hail","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",80,2,"Wichita in 5% tornado AND 30% wind contours"],
-  ["67202","Wichita Downtown","Kansas","KS","HIGH","Supercell / Tornado 5% / Damaging Winds 30%","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",80,2,"Downtown Wichita dual-threat zone"],
-  ["67203","Wichita","Kansas","KS","HIGH","Supercell / Tornado 5% / Damaging Winds","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",79,2,"Wichita metro"],
-  ["67204","Wichita North","Kansas","KS","HIGH","Supercell / Tornado 5%","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",78,2,"N Wichita"],
-  ["67205","Wichita NW","Kansas","KS","HIGH","Supercell / Tornado 5% / Large Hail","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",79,2,"NW Wichita storm initiation area"],
-  ["67206","Wichita East","Kansas","KS","HIGH","Supercell / Damaging Winds","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",77,2,"E Wichita"],
-  ["67207","Wichita SE","Kansas","KS","HIGH","Supercell / Tornado Risk","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",77,2,"SE Wichita"],
-  ["66101","Kansas City KS","Kansas","KS","HIGH","Supercell / Tornado 5% / Flash Flooding","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",78,2,"KCKS in 5% tornado contour"],
-  ["66102","Kansas City KS","Kansas","KS","HIGH","Supercell / Tornado 5%","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",78,2,"KCKS FedEx area"],
-  ["66103","Kansas City KS","Kansas","KS","HIGH","Supercell / Tornado 5%","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",77,2,"KCKS metro"],
-  ["66213","Overland Park","Kansas","KS","HIGH","Supercell / Tornado 5% / Damaging Winds","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",78,2,"Overland Park in 5% tornado contour"],
-  ["66214","Overland Park","Kansas","KS","HIGH","Supercell / Tornado 5%","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",77,2,"SW Overland Park"],
-  ["66502","Manhattan KS","Kansas","KS","HIGH","Supercell / Tornado Risk / Large Hail","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",76,2,"Manhattan KS central corridor"],
-  ["66601","Topeka","Kansas","KS","HIGH","Supercell / Tornado Risk / Severe Thunderstorms","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",75,2,"Topeka NE Kansas enhanced zone"],
-  ["76301","Wichita Falls","Texas","TX","HIGH","Damaging Winds 30% / Supercell / Tornado Risk / Large Hail","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",80,2,"Wichita Falls in 30% damaging wind core"],
-  ["76302","Wichita Falls","Texas","TX","HIGH","Damaging Winds 30% / Supercell / Large Hail","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",80,2,"Wichita Falls metro wind core"],
-  ["76308","Wichita Falls","Texas","TX","HIGH","Damaging Winds 30% / Supercell","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",79,2,"Wichita Falls S corridor"],
-  ["75201","Dallas","Texas","TX","HIGH","Severe Thunderstorms / Damaging Winds (5% broad) / Large Hail","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",68,2,"Dallas in NOAA broad 5% wind zone"],
-  ["75202","Dallas Downtown","Texas","TX","HIGH","Severe Thunderstorms / Damaging Winds","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",67,2,"Downtown Dallas freight hub"],
-  ["75203","Dallas","Texas","TX","HIGH","Severe Thunderstorms / Damaging Winds","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",67,2,"Dallas S corridor"],
-  ["75204","Dallas","Texas","TX","HIGH","Severe Thunderstorms / Damaging Winds","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",67,2,"Dallas metro area"],
-  ["76101","Fort Worth","Texas","TX","HIGH","Severe Thunderstorms / Damaging Winds (5% broad) / Large Hail","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",68,2,"Fort Worth in NOAA broad 5% wind zone"],
-  ["76102","Fort Worth Downtown","Texas","TX","HIGH","Severe Thunderstorms / Damaging Winds","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",67,2,"Downtown Fort Worth"],
-  ["76103","Fort Worth","Texas","TX","HIGH","Severe Thunderstorms / Damaging Winds","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",66,2,"East Fort Worth"],
-  ["76104","Fort Worth","Texas","TX","HIGH","Severe Thunderstorms / Damaging Winds","DELAYED","DELAYED","Wed Apr 1  12:00 PM CDT","Thu Apr 2  7:00 AM CDT",66,2,"S Fort Worth"],
-  ["19101","Philadelphia","Pennsylvania","PA","MODERATE-HIGH","Severe Thunderstorms / Damaging Winds (5%) / Heavy Rain","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",56,2,"Philadelphia in NOAA broad 5% wind contour"],
-  ["19102","Philadelphia","Pennsylvania","PA","MODERATE-HIGH","Severe Thunderstorms / Damaging Winds / Heavy Rain","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",55,2,"Center City Philadelphia"],
-  ["19103","Philadelphia","Pennsylvania","PA","MODERATE-HIGH","Severe Thunderstorms / Damaging Winds","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",54,2,"Rittenhouse/Logan Square"],
-  ["19104","Philadelphia W","Pennsylvania","PA","MODERATE-HIGH","Severe Thunderstorms / Heavy Rain","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",53,2,"W Philadelphia corridor"],
-  ["19106","Philadelphia","Pennsylvania","PA","MODERATE-HIGH","Severe Thunderstorms / Damaging Winds","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",54,2,"Old City / Penn's Landing"],
-  ["19107","Philadelphia","Pennsylvania","PA","MODERATE-HIGH","Severe Thunderstorms / Heavy Rain","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",53,2,"Center City East"],
-  ["19140","Philadelphia N","Pennsylvania","PA","MODERATE-HIGH","Severe Thunderstorms / Heavy Rain","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",52,2,"N Philadelphia distribution area"],
-  ["21201","Baltimore","Maryland","MD","MODERATE-HIGH","Severe Thunderstorms / Damaging Winds (5%) / Heavy Rain","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",57,2,"Baltimore in NOAA broad 5% wind contour"],
-  ["21202","Baltimore Downtown","Maryland","MD","MODERATE-HIGH","Severe Thunderstorms / Damaging Winds","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",56,2,"Downtown Baltimore Inner Harbor"],
-  ["21205","Baltimore East","Maryland","MD","MODERATE-HIGH","Severe Thunderstorms / Heavy Rain","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",55,2,"E Baltimore freight corridor"],
-  ["21217","Baltimore West","Maryland","MD","MODERATE-HIGH","Severe Thunderstorms / Heavy Rain","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",54,2,"W Baltimore area"],
-  ["21218","Baltimore","Maryland","MD","MODERATE-HIGH","Severe Thunderstorms / Damaging Winds","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",55,2,"Baltimore Waverly/Remington"],
-  ["43201","Columbus","Ohio","OH","MODERATE-HIGH","Severe Thunderstorms / Damaging Winds (5%) / Heavy Rain","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",55,2,"Columbus in NOAA broad 5% wind contour — 1-day ground from CHI"],
-  ["43202","Columbus N","Ohio","OH","MODERATE-HIGH","Severe Thunderstorms / Damaging Winds","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",54,2,"N Columbus corridor"],
-  ["43203","Columbus E","Ohio","OH","MODERATE-HIGH","Severe Thunderstorms / Heavy Rain","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",53,2,"E Columbus area"],
-  ["43204","Columbus W","Ohio","OH","MODERATE-HIGH","Severe Thunderstorms / Heavy Rain","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",53,2,"W Columbus distribution area"],
-  ["43205","Columbus SE","Ohio","OH","MODERATE-HIGH","Severe Thunderstorms / Damaging Winds","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",53,2,"SE Columbus"],
-  ["23219","Richmond","Virginia","VA","MODERATE-HIGH","Severe Thunderstorms / Damaging Winds / Heavy Rain","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",57,2,"Richmond Mid-Atlantic risk zone"],
-  ["23220","Richmond","Virginia","VA","MODERATE-HIGH","Severe Thunderstorms / Damaging Winds","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",56,2,"W Richmond corridor"],
-  ["22201","Arlington","Virginia","VA","MODERATE-HIGH","Severe Thunderstorms / Heavy Rain / Damaging Winds","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",57,2,"Arlington / Northern VA FedEx hub"],
-  ["22314","Alexandria","Virginia","VA","MODERATE-HIGH","Severe Thunderstorms / Heavy Rain","IMPACTED","IMPACTED","Wed Apr 1  2:00 PM EDT","Thu Apr 2  6:00 AM EDT",56,2,"Alexandria I-95 corridor"],
-  ["07102","Newark","New Jersey","NJ","MODERATE-HIGH","Severe Thunderstorms / Damaging Winds / Heavy Rain","IMPACTED","IMPACTED","Wed Apr 1  3:00 PM EDT","Thu Apr 2  5:00 AM EDT",53,2,"Newark FedEx hub Mid-Atlantic zone"],
-  ["07103","Newark","New Jersey","NJ","MODERATE-HIGH","Severe Thunderstorms / Heavy Rain","IMPACTED","IMPACTED","Wed Apr 1  3:00 PM EDT","Thu Apr 2  5:00 AM EDT",52,2,"Newark metro area"],
-  ["08101","Camden","New Jersey","NJ","MODERATE-HIGH","Severe Thunderstorms / Damaging Winds","IMPACTED","IMPACTED","Wed Apr 1  3:00 PM EDT","Thu Apr 2  5:00 AM EDT",52,2,"Camden/Cherry Hill FedEx corridor"],
-  ["08033","Haddonfield","New Jersey","NJ","MODERATE-HIGH","Severe Thunderstorms / Heavy Rain","IMPACTED","IMPACTED","Wed Apr 1  3:00 PM EDT","Thu Apr 2  5:00 AM EDT",50,2,"S Jersey distribution zone"],
-  ["19801","Wilmington","Delaware","DE","MODERATE-HIGH","Severe Thunderstorms / Damaging Winds / Heavy Rain","IMPACTED","IMPACTED","Wed Apr 1  3:00 PM EDT","Thu Apr 2  5:00 AM EDT",51,2,"Wilmington Mid-Atlantic risk zone"],
-  ["19802","Wilmington N","Delaware","DE","MODERATE-HIGH","Severe Thunderstorms / Heavy Rain","IMPACTED","IMPACTED","Wed Apr 1  3:00 PM EDT","Thu Apr 2  5:00 AM EDT",50,2,"N Wilmington area"],
-  ["19901","Dover","Delaware","DE","MODERATE-HIGH","Severe Thunderstorms / Heavy Rain","IMPACTED","IMPACTED","Wed Apr 1  3:00 PM EDT","Thu Apr 2  5:00 AM EDT",49,2,"Dover DE corridor"],
-  ["68101","Omaha","Nebraska","NE","MODERATE-HIGH","Severe Thunderstorms / Tornado Risk / Large Hail (Day 4)","IMPACTED","DELAYED","Fri Apr 3  8:00 AM CDT","Fri Apr 3  10:00 PM CDT",63,1,"Omaha Day 4 secondary 15% signal"],
-  ["68102","Omaha Downtown","Nebraska","NE","MODERATE-HIGH","Severe Thunderstorms / Tornado Risk (Day 4)","IMPACTED","DELAYED","Fri Apr 3  8:00 AM CDT","Fri Apr 3  10:00 PM CDT",62,1,"Downtown Omaha"],
-  ["68104","Omaha S","Nebraska","NE","MODERATE-HIGH","Severe Thunderstorms / Large Hail (Day 4)","IMPACTED","DELAYED","Fri Apr 3  8:00 AM CDT","Fri Apr 3  10:00 PM CDT",61,1,"S Omaha distribution zone"],
-  ["68501","Lincoln","Nebraska","NE","MODERATE-HIGH","Severe Thunderstorms / Tornado Risk (Day 4)","IMPACTED","DELAYED","Fri Apr 3  8:00 AM CDT","Fri Apr 3  10:00 PM CDT",62,1,"Lincoln Day 4 secondary zone"],
-  ["68502","Lincoln","Nebraska","NE","MODERATE-HIGH","Severe Thunderstorms / Large Hail (Day 4)","IMPACTED","DELAYED","Fri Apr 3  8:00 AM CDT","Fri Apr 3  10:00 PM CDT",61,1,"S Lincoln corridor"],
-  ["64101","Kansas City MO","Missouri","MO","MODERATE-HIGH","Severe Thunderstorms / Tornado Risk / Large Hail (Day 4)","IMPACTED","DELAYED","Fri Apr 3  8:00 AM CDT","Fri Apr 3  10:00 PM CDT",61,1,"KCMO Day 4 secondary — 1-day ground from CHI"],
-  ["64102","Kansas City MO Downtown","Missouri","MO","MODERATE-HIGH","Severe Thunderstorms / Tornado Risk (Day 4)","IMPACTED","DELAYED","Fri Apr 3  8:00 AM CDT","Fri Apr 3  10:00 PM CDT",60,1,"Downtown KCMO"],
-  ["64108","Kansas City MO","Missouri","MO","MODERATE-HIGH","Severe Thunderstorms / Large Hail (Day 4)","IMPACTED","DELAYED","Fri Apr 3  8:00 AM CDT","Fri Apr 3  10:00 PM CDT",60,1,"KCMO south corridor"],
-  ["64111","Kansas City MO Midtown","Missouri","MO","MODERATE-HIGH","Severe Thunderstorms (Day 4)","IMPACTED","DELAYED","Fri Apr 3  8:00 AM CDT","Fri Apr 3  10:00 PM CDT",59,1,"KCMO midtown"],
-  ["63101","St. Louis","Missouri","MO","MODERATE-HIGH","Severe Thunderstorms / Tornado Risk (Day 4)","IMPACTED","DELAYED","Fri Apr 3  8:00 AM CDT","Fri Apr 3  10:00 PM CDT",60,1,"STL Day 4 secondary zone"],
-  ["63102","St. Louis Downtown","Missouri","MO","MODERATE-HIGH","Severe Thunderstorms (Day 4)","IMPACTED","DELAYED","Fri Apr 3  8:00 AM CDT","Fri Apr 3  10:00 PM CDT",60,1,"Downtown STL riverfront"],
-  ["63103","St. Louis","Missouri","MO","MODERATE-HIGH","Severe Thunderstorms / Large Hail (Day 4)","IMPACTED","DELAYED","Fri Apr 3  8:00 AM CDT","Fri Apr 3  10:00 PM CDT",59,1,"STL metro"],
-  ["50301","Des Moines","Iowa","IA","MODERATE-HIGH","Severe Thunderstorms / Tornado Risk (Day 4)","IMPACTED","IMPACTED","Fri Apr 3  8:00 AM CDT","Fri Apr 3  10:00 PM CDT",59,1,"Des Moines Day 4 secondary — 1-day ground from CHI"],
-  ["50302","Des Moines N","Iowa","IA","MODERATE-HIGH","Severe Thunderstorms / Large Hail (Day 4)","IMPACTED","IMPACTED","Fri Apr 3  8:00 AM CDT","Fri Apr 3  10:00 PM CDT",58,1,"N Des Moines"],
-  ["50309","Des Moines Downtown","Iowa","IA","MODERATE-HIGH","Severe Thunderstorms (Day 4)","IMPACTED","IMPACTED","Fri Apr 3  8:00 AM CDT","Fri Apr 3  10:00 PM CDT",58,1,"Downtown Des Moines"],
-  ["52401","Cedar Rapids","Iowa","IA","MODERATE-HIGH","Severe Thunderstorms / Tornado Risk (Day 4)","IMPACTED","IMPACTED","Fri Apr 3  8:00 AM CDT","Fri Apr 3  10:00 PM CDT",58,1,"Cedar Rapids Day 4 secondary zone"],
-  ["52402","Cedar Rapids","Iowa","IA","MODERATE-HIGH","Severe Thunderstorms / Large Hail (Day 4)","IMPACTED","IMPACTED","Fri Apr 3  8:00 AM CDT","Fri Apr 3  10:00 PM CDT",57,1,"Cedar Rapids S corridor"],
-];
+const ZIP_DATA = [];
 
 // ═══ HELPERS ════════════════════════════════════════════
 const LVL_B={HIGH:'b-high','MODERATE-HIGH':'b-modhi',EXTREME:'b-extreme'};
@@ -482,6 +348,7 @@ function renderZipTable(data){
   filteredZips=data;
   document.getElementById('zip-count').textContent=`Showing ${data.length} of ${ZIP_DATA.length} ZIPs`;
   const tb=document.getElementById('zip-tbody');
+  if(!ZIP_DATA.length){tb.innerHTML='<tr><td colspan="14" style="padding:20px;text-align:center;color:#107C41;font-weight:bold;">✅ No active severe weather alerts affecting Chicago-origin routes. ZIP data clears automatically when alerts expire.</td></tr>';return;}
   if(!data.length){tb.innerHTML='<tr><td colspan="14" class="nodata">No ZIPs match filters.</td></tr>';return;}
   tb.innerHTML=data.map((r,i)=>{
     const pr=periFromRow(r);
@@ -553,6 +420,10 @@ function dl(blob,name){const a=document.createElement('a');a.href=URL.createObje
 
 // ═══ STATE TABLE ═════════════════════════════════════════
 function renderStates(){
+  if(!STATE_DATA.length){
+    document.getElementById('state-tbody').innerHTML='<tr><td colspan="9" style="padding:20px;text-align:center;color:#107C41;font-weight:bold;">✅ No active severe weather alerts affecting Chicago-origin routes.</td></tr>';
+    return;
+  }
   document.getElementById('state-tbody').innerHTML=STATE_DATA.map((s,i)=>{
     const tr=TRANSIT[s.abbr]||{};
     return`<tr class="${i%2?'even':''}">
@@ -609,6 +480,10 @@ function renderChart(){
     const score=Math.round(s.pct*(1+((tr.chiGround||2)-1)*0.15));
     return{...s,score,tr};
   }).sort((a,b_)=>b_.score-a.score);
+  if(!scored.length){
+    document.getElementById('chart-bars').innerHTML='<div style="padding:20px;text-align:center;color:#107C41;font-weight:bold;">✅ No active severe weather alerts — perishable routes are clear.</div>';
+    return;
+  }
   const max=scored[0].score;
   document.getElementById('chart-bars').innerHTML=scored.map(s=>{
     const w=Math.round(s.score/max*100);
@@ -647,11 +522,15 @@ async function loadLiveAlerts(){
   wrap.innerHTML='<div class="loading"><div class="spinner"></div>Fetching live NOAA data for Chicago-origin routes…</div>';
   let data;
   try{
-    const r=await fetch('https://api.weather.gov/alerts/active?status=actual&message_type=alert&urgency=Immediate,Expected&severity=Extreme,Severe',{headers:{'User-Agent':'LouMalnatis-FedExAlert/1.0'}});
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),10000);
+    const r=await fetch('https://api.weather.gov/alerts/active?status=actual&message_type=alert&urgency=Immediate,Expected&severity=Extreme,Severe',{signal:ctrl.signal});
+    clearTimeout(timer);
     if(!r.ok)throw new Error('HTTP '+r.status);
     data=await r.json();
   }catch(e){
-    wrap.innerHTML=`<div style="padding:12px"><div class="fedex-banner" style="background:#7f1c1c">⚠ Could not load live NOAA data: ${e.message}. Using embedded 7-day planning data above.</div></div>`;
+    const msg=e.name==='AbortError'?'Request timed out after 10s.':e.message;
+    wrap.innerHTML=`<div style="padding:12px"><div class="fedex-banner" style="background:#7f1c1c">⚠ Could not load live NOAA data: ${msg} Check your connection or try refreshing.</div></div>`;
     return;
   }
   const alerts=data.features||[];
@@ -700,12 +579,55 @@ async function loadLiveAlerts(){
   }).join('');
 }
 
+
+// ═══ OUTLOOK TABLE ═══════════════════════════════════════
+function renderOutlook(){
+  const hdr = document.getElementById('outlook-hdr');
+  const tb  = document.getElementById('outlook-tbody');
+  if(!hdr || !tb) return;
+  const ts = document.getElementById('lastUpdated');
+  const now = new Date().toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'});
+  hdr.textContent = '7-Day Outlook — Chicago Route Impact (NOAA Data, ' + now + ')';
+  if(!STATE_DATA.length){
+    tb.innerHTML='<tr><td colspan="8" style="padding:18px;text-align:center;color:#107C41;font-weight:bold;">✅ No active severe weather alerts affecting Chicago-origin routes. Routes are clear.</td></tr>';
+    return;
+  }
+  // Group by noaa risk level for display
+  tb.innerHTML = STATE_DATA.map((s,i)=>{
+    const tr = TRANSIT[s.abbr]||{};
+    const pr = tr.periRisk||'MODERATE';
+    const periCls = PERI_CLR[pr]||'b-peri-mod';
+    const noaaCls = NOAA_B[s.noaa]||'b-low';
+    return `<tr class="${i%2?'even':''}">
+      <td><strong>${s.weather.split('/')[0].trim()}</strong></td>
+      <td>${b(s.noaa, noaaCls)}</td>
+      <td>${s.abbr}</td>
+      <td style="font-size:0.72rem;max-width:220px">${s.weather}</td>
+      <td style="white-space:nowrap;font-size:0.72rem">${s.start||'—'}<br>– ${s.end||'—'}</td>
+      <td>${bs(s.express)}</td>
+      <td>${bs(s.ground)}</td>
+      <td>${bp(pr)}</td>
+    </tr>`;
+  }).join('');
+}
+
 // ═══ INIT ════════════════════════════════════════════════
 function loadAll(){
   const crit=STATE_DATA.filter(s=>(TRANSIT[s.abbr]||{}).periRisk==='CRITICAL').length;
   const high=STATE_DATA.filter(s=>(TRANSIT[s.abbr]||{}).periRisk==='HIGH').length;
   document.getElementById('k-crit').textContent=crit;
   document.getElementById('k-high').textContent=high;
+  // Populate state dropdown dynamically from STATE_DATA
+  const sel=document.getElementById('zip-state');
+  if(sel){
+    const cur=sel.value;
+    while(sel.options.length>1) sel.remove(1);
+    [...new Set(STATE_DATA.map(s=>s.state))].sort().forEach(st=>{
+      const o=document.createElement('option'); o.value=st; o.text=st; sel.add(o);
+    });
+    if(cur) sel.value=cur;
+  }
+  renderOutlook();
   filterZips();
   renderStates();
   renderMap();
