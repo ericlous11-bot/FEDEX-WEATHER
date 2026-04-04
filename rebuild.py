@@ -77,22 +77,29 @@ STATE_NAMES = {
 
 # Interruption probability by NWS event type and severity
 EVENT_IMPACT = {
+    # Tornado-related
     "Tornado Warning":        ("HIGH", 82, "DELAYED", "DELAYED"),
     "Tornado Watch":          ("HIGH", 72, "DELAYED", "DELAYED"),
+    # Severe thunderstorm
     "Severe Thunderstorm Warning": ("HIGH", 70, "DELAYED", "DELAYED"),
     "Severe Thunderstorm Watch":   ("MODERATE-HIGH", 58, "POSS. IMPACT", "POSS. IMPACT"),
+    # Winter
     "Blizzard Warning":       ("HIGH", 80, "DELAYED", "DELAYED"),
     "Winter Storm Warning":   ("HIGH", 74, "DELAYED", "DELAYED"),
     "Winter Storm Watch":     ("MODERATE-HIGH", 60, "POSS. IMPACT", "POSS. IMPACT"),
     "Ice Storm Warning":      ("HIGH", 78, "DELAYED", "DELAYED"),
     "Winter Weather Advisory":("MODERATE-HIGH", 50, "POSS. IMPACT", "POSS. IMPACT"),
+    # Wind
     "High Wind Warning":      ("HIGH", 70, "DELAYED", "DELAYED"),
     "High Wind Watch":        ("MODERATE-HIGH", 55, "POSS. IMPACT", "POSS. IMPACT"),
     "Wind Advisory":          ("MODERATE-HIGH", 48, "POSS. IMPACT", "POSS. IMPACT"),
+    # Flood
     "Flash Flood Warning":    ("MODERATE-HIGH", 60, "POSS. IMPACT", "POSS. IMPACT"),
     "Flood Warning":          ("MODERATE-HIGH", 52, "POSS. IMPACT", "POSS. IMPACT"),
+    # Hurricane/tropical
     "Hurricane Warning":      ("HIGH", 82, "DELAYED", "DELAYED"),
     "Tropical Storm Warning": ("HIGH", 72, "DELAYED", "DELAYED"),
+    # Extreme heat/cold
     "Excessive Heat Warning": ("MODERATE-HIGH", 48, "POSS. IMPACT", "POSS. IMPACT"),
     "Extreme Cold Warning":   ("HIGH", 68, "DELAYED", "DELAYED"),
 }
@@ -119,18 +126,28 @@ def fetch_noaa_alerts():
 
 
 def states_from_alert(feat):
-    """Extract state abbreviations affected by an alert feature."""
+    """Extract state abbreviations and county codes from an alert feature.
+    Returns (states: set, counties: dict[abbr -> set of 3-digit county codes])."""
     props = feat.get("properties", {})
     states = set()
+    counties = {}  # abbr → set of 3-digit county FIPS codes
     geocode = props.get("geocode", {})
     for code in geocode.get("SAME", []) + geocode.get("UGC", []):
         if len(code) >= 2:
             states.add(code[:2])
+    # County zones: /zones/county/INC097 → state=IN, county=097
+    # Forecast zones: /zones/forecast/OKZ001 → state only
     for zone_url in props.get("affectedZones", []):
-        m = re.search(r'/([A-Z]{2})[CZ]\d{3}$', zone_url)
+        m = re.search(r'/([A-Z]{2})C(\d{3})$', zone_url)
         if m:
-            states.add(m.group(1))
-    return states
+            abbr, county = m.group(1), m.group(2)
+            states.add(abbr)
+            counties.setdefault(abbr, set()).add(county)
+        else:
+            m2 = re.search(r'/([A-Z]{2})Z\d{3}$', zone_url)
+            if m2:
+                states.add(m2.group(1))
+    return states, counties
 
 
 def build_state_data(alerts_geojson):
@@ -147,6 +164,7 @@ def build_state_data(alerts_geojson):
             onset = props.get("onset", "")
             ends  = props.get("ends", props.get("expires", ""))
 
+            # Determine impact level
             if event in EVENT_IMPACT:
                 level, pct, ground, express = EVENT_IMPACT[event]
             elif severity == "Extreme":
@@ -154,14 +172,17 @@ def build_state_data(alerts_geojson):
             else:
                 level, pct, ground, express = DEFAULT_MODHI
 
+            # Only keep HIGH + MODERATE-HIGH
             if level not in ("HIGH", "MODERATE-HIGH"):
                 continue
 
-            alert_states = states_from_alert(feat)
+            alert_states, alert_counties = states_from_alert(feat)
             for abbr in alert_states:
                 if abbr not in TRANSIT:
                     continue
+                # Keep highest-impact alert per state; always merge county codes
                 existing = affected.get(abbr)
+                state_counties = alert_counties.get(abbr, set())
                 if existing is None or pct > existing["pct"]:
                     affected[abbr] = {
                         "abbr": abbr,
@@ -174,10 +195,15 @@ def build_state_data(alerts_geojson):
                         "onset": onset,
                         "ends": ends,
                         "noaa": "ACTIVE",
+                        "counties": set(state_counties),
                     }
+                else:
+                    existing["counties"].update(state_counties)
 
+    # Build sorted state rows (HIGH first, then MODERATE-HIGH, by pct desc)
     rows = sorted(affected.values(), key=lambda x: (-{"HIGH":1,"MODERATE-HIGH":0}.get(x["level"],0), -x["pct"]))
 
+    # Format dates for display
     for r in rows:
         for key in ("onset", "ends"):
             raw = r[key]
@@ -200,6 +226,7 @@ def fmt_js_state_data(rows):
     lines = []
     for r in rows:
         t = TRANSIT[r["abbr"]]
+        counties_js = json.dumps(sorted(r.get("counties", [])))
         lines.append(
             f'  {{state:"{r["state"]}",abbr:"{r["abbr"]}",'
             f'impact:{r["pct"]},level:"{r["level"]}",'
@@ -208,13 +235,14 @@ def fmt_js_state_data(rows):
             f'ground:"{r["ground"]}",express:"{r["express"]}",'
             f'start:"{r.get("onset_fmt","—")}",end:"{r.get("ends_fmt","—")}",'
             f'pct:{r["pct"]},'
+            f'counties:{counties_js},'
             f'note:"Live NOAA alert — verify at fedex.com/service-alerts"}}'
         )
     return "[\n" + ",\n".join(lines) + "\n]"
 
 
 def update_html(html, rows, now_utc, alert_count):
-    """Patch the STATE_DATA array and update timestamps in the HTML."""
+    """Patch the STATE_DATA and ZIP_DATA arrays and update timestamps in the HTML."""
     state_js = fmt_js_state_data(rows)
     html = re.sub(
         r'const STATE_DATA\s*=\s*\[[\s\S]*?\];',
@@ -228,6 +256,11 @@ def update_html(html, rows, now_utc, alert_count):
         rf'\g<1>{ts})',
         html
     )
+    html = re.sub(
+        r'(Mar 31 2026)',
+        ts,
+        html
+    )
 
     high_count = sum(1 for r in rows if r["level"] == "HIGH")
     modhi_count = sum(1 for r in rows if r["level"] == "MODERATE-HIGH")
@@ -239,7 +272,7 @@ def update_html(html, rows, now_utc, alert_count):
 
     html = re.sub(
         r'(⚠ Sources:)',
-        f'U0001f504 Auto-updated: {ts} · \g<1>',
+        f'\U0001f504 Auto-updated: {ts} · \g<1>',
         html,
         count=1
     )
@@ -272,7 +305,8 @@ def generate_zips_json(base_dir):
         if not zipcode or not abbr or zipcode in seen:
             continue
         seen.add(zipcode)
-        zips.append([zipcode, city, state, abbr])
+        county = parts[4].strip().zfill(3) if len(parts) > 4 else ''
+        zips.append([zipcode, city, state, abbr, county])
 
     out_path = os.path.join(base_dir, "zips.json")
     with open(out_path, "w", encoding="utf-8") as f:
