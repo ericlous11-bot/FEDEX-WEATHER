@@ -233,7 +233,7 @@ def fmt_js_state_data(rows):
             f'weather:"{r["weather"].replace(chr(34), chr(39))}",'
             f'noaa:"{r["noaa"]}",'
             f'ground:"{r["ground"]}",express:"{r["express"]}",'
-            f'start:"{r.get("onset_fmt","—")}",end:"{r.get("ends_fmt","—")}",'
+            f'start:"{r.get("onset_fmt","—")}",end:"{r.get("ends_fmt","—")}",ends_iso:"{r.get("ends","")}",'
             f'pct:{r["pct"]},'
             f'counties:{counties_js},'
             f'note:"Live NOAA alert — verify at fedex.com/service-alerts"}}'
