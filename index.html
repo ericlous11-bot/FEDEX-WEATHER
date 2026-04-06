@@ -647,6 +647,12 @@ function renderOutlook(){
 
 // ═══ INIT ════════════════════════════════════════════════
 function loadAll(){
+  // Purge expired STATE_DATA entries on every load/refresh
+  const _now = Date.now();
+  for(let i = STATE_DATA.length - 1; i >= 0; i--){
+    const iso = STATE_DATA[i].ends_iso;
+    if(iso && iso.length > 5){ try{ if(new Date(iso).getTime() < _now) STATE_DATA.splice(i,1); }catch(e){} }
+  }
   const crit=STATE_DATA.filter(s=>(TRANSIT[s.abbr]||{}).periRisk==='CRITICAL').length;
   const high=STATE_DATA.filter(s=>(TRANSIT[s.abbr]||{}).periRisk==='HIGH').length;
   document.getElementById('k-crit').textContent=crit;
