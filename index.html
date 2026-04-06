@@ -367,7 +367,7 @@ function renderZipTable(data){
 }
 
 function filterZips(){
-  // Only show ZIPs whose state is currently in active STATE_DATA
+  // Only show ZIPs in counties with active NOAA alerts
   const activeAbbrs = new Set(STATE_DATA.map(s=>s.abbr));
   const search=(document.getElementById('zip-search')||{}).value||'';
   const stateF=(document.getElementById('zip-state')||{}).value||'';
@@ -380,9 +380,20 @@ function filterZips(){
     return;
   }
 
-  // Build display rows from ZIP_REF + STATE_DATA lookup
+  // Build county map: {state_abbr: Set of 3-digit county FIPS} from STATE_DATA
+  const countyMap = {};
+  STATE_DATA.forEach(s => {
+    if(s.counties && s.counties.length) countyMap[s.abbr] = new Set(s.counties);
+  });
+
+  // r[3]=state_abbr, r[4]=3-digit county FIPS (populated after next rebuild)
   let data = ZIP_REF
-    .filter(r => activeAbbrs.has(r[3]))
+    .filter(r => {
+      if(!activeAbbrs.has(r[3])) return false;
+      const cset = countyMap[r[3]];
+      if(cset && cset.size > 0) return cset.has(r[4]);
+      return true; // fallback: show all ZIPs in state when no county data
+    })
     .map(r => {
       const sd = STATE_DATA.find(s=>s.abbr===r[3])||{};
       // Expand to full row format: [zip,city,state,abbr,level,weather,ground,express,start,end,pct,days,note]
