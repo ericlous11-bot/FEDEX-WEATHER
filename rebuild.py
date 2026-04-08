@@ -167,7 +167,13 @@ def states_from_alert(feat):
     # County names from areaDesc (e.g. "Coffee; Jeff Davis; Bacon; Appling")
     # These match county names in zips.json index 4 — no FIPS lookup needed
     area_desc = props.get("areaDesc", "")
-    county_names = {c.strip() for c in area_desc.split(";") if c.strip()}
+        county_names = set()
+    for _c in area_desc.split(";"):
+        _n = _c.strip()
+        if not _n: continue
+        if " in " in _n: _n = _n.split(" in ", 1)[1]
+        _n = re.sub(r',\s*[A-Z]{2}$', '', _n).strip()
+        if _n: county_names.add(_n)
     # Associate all county names with every identified state.
     # filterZips also checks state abbr so cross-state collisions are impossible.
     counties = {abbr: county_names.copy() for abbr in states} if county_names else {}
