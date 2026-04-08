@@ -125,18 +125,39 @@ def fetch_noaa_alerts():
         return None
 
 
+# State FIPS (2-digit) to abbreviation — for SAME geocode county extraction
+FIPS_TO_ABBR = {
+    "01":"AL","02":"AK","04":"AZ","05":"AR","06":"CA","08":"CO","09":"CT",
+    "10":"DE","11":"DC","12":"FL","13":"GA","15":"HI","16":"ID","17":"IL",
+    "18":"IN","19":"IA","20":"KS","21":"KY","22":"LA","23":"ME","24":"MD",
+    "25":"MA","26":"MI","27":"MN","28":"MS","29":"MO","30":"MT","31":"NE",
+    "32":"NV","33":"NH","34":"NJ","35":"NM","36":"NY","37":"NC","38":"ND",
+    "39":"OH","40":"OK","41":"OR","42":"PA","44":"RI","45":"SC","46":"SD",
+    "47":"TN","48":"TX","49":"UT","50":"VT","51":"VA","53":"WA","54":"WV",
+    "55":"WI","56":"WY"
+}
+
 def states_from_alert(feat):
     """Extract state abbreviations and county codes from an alert feature.
-    Returns (states: set, counties: dict[abbr -> set of 3-digit county codes])."""
+    Returns (states: set, counties: dict[abbr -> set of 3-digit county codes]).
+    County extraction uses both /zones/county/ URLs and SAME geocodes so that
+    fire-weather zone alerts (GAZ###) are handled correctly."""
     props = feat.get("properties", {})
     states = set()
-    counties = {}  # abbr → set of 3-digit county FIPS codes
+    counties = {}  # abbr -> set of 3-digit county FIPS codes
     geocode = props.get("geocode", {})
-    for code in geocode.get("SAME", []) + geocode.get("UGC", []):
+    # UGC codes: "GAZ132" -> state abbr "GA" (first 2 chars)
+    for code in geocode.get("UGC", []):
         if len(code) >= 2:
             states.add(code[:2])
-    # County zones: /zones/county/INC097 → state=IN, county=097
-    # Forecast zones: /zones/forecast/OKZ001 → state only
+    # SAME codes: "013069" = 0 + state-FIPS "13" (GA) + county "069"
+    for code in geocode.get("SAME", []):
+        if len(code) == 6:
+            abbr = FIPS_TO_ABBR.get(code[1:3])
+            if abbr:
+                states.add(abbr)
+                counties.setdefault(abbr, set()).add(code[3:])
+    # County zone URLs: /zones/county/INC097 -> IN, 097
     for zone_url in props.get("affectedZones", []):
         m = re.search(r'/([A-Z]{2})C(\d{3})$', zone_url)
         if m:
@@ -144,11 +165,10 @@ def states_from_alert(feat):
             states.add(abbr)
             counties.setdefault(abbr, set()).add(county)
         else:
-            m2 = re.search(r'/([A-Z]{2})Z\d{3}$', zone_url)
+            m2 = re.search(r'/([A-Z]{2})[A-Z]\d{3}$', zone_url)
             if m2:
                 states.add(m2.group(1))
     return states, counties
-
 
 def build_state_data(alerts_geojson):
     """Map live NOAA alerts to Chicago-route states, returning state rows."""
