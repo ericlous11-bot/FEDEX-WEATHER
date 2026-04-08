@@ -506,7 +506,12 @@ function renderMap(){
 // ═══ CHART ═══════════════════════════════════════════════
 function renderChart(){
   // Perishable Risk Score = interruption% × ground transit factor
-  const scored=STATE_DATA.map(s=>{
+  const scored=STATE_DATA.filter(s=>{
+    const _tot=ZIP_REF.filter(z=>z[3]===s.abbr).length;
+    if(!_tot)return false;
+    const _aff=ZIP_REF.filter(z=>z[3]===s.abbr&&new Set(s.counties).has(z[4])).length;
+    return _aff/_tot>0.5;
+  }).map(s=>{
     const tr=TRANSIT[s.abbr]||{chiGround:2};
     const score=Math.round(s.pct*(1+((tr.chiGround||2)-1)*0.15));
     return{...s,score,tr};
