@@ -457,8 +457,8 @@ function renderStates(){
   }
   document.getElementById('state-tbody').innerHTML=STATE_DATA.map((s,i)=>{
     const tr=TRANSIT[s.abbr]||{};
-    return`<tr class="${i%2?'even':''}">
-      <td><strong>${s.state}</strong></td><td>${s.abbr}</td>
+    return`<tr class="${i%2?'even':''}" style="cursor:pointer" onclick="toggleCounties('cd-${s.abbr}')">
+      <td><strong>${s.state}</strong><br><small style="color:#888">▶ ${(s.counties||[]).length} counties</small></td><td>${s.abbr}</td>
       <td class="center"><strong>${s.impact}%</strong></td>
       <td>${bl(s.level)}</td>
       <td style="font-size:0.7rem;max-width:200px">${s.weather}</td>
@@ -469,9 +469,17 @@ function renderStates(){
       <td>${bp(tr.periRisk||'MODERATE')}</td>
       <td>${bn(s.noaa)}</td>
       <td class="td-note" style="font-size:0.7rem" title="${s.note}">${s.note}</td>
+    </tr>
+    <tr id="cd-${s.abbr}" class="county-detail" style="display:none">
+      <td colspan="13" style="background:#f8f9fa;padding:6px 16px;font-size:0.8rem"><strong>${(s.counties||[]).length} affected counties:</strong> ${(s.counties||[]).slice().sort().join(', ')||'—'}</td>
     </tr>`;
   }).join('');
 }
+function toggleCounties(id){
+  const r=document.getElementById(id);
+  if(r)r.style.display=r.style.display==='none'?'':'none';
+}
+
 
 // ═══ MAP ═════════════════════════════════════════════════
 const ALL_ST=['WA','OR','CA','NV','ID','MT','WY','UT','AZ','CO','NM',
