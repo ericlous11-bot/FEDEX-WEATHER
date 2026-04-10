@@ -395,20 +395,9 @@ function filterZips(){
     return;
   }
 
-  // Build county map: {state_abbr: Set of county names} from STATE_DATA
-  const countyMap = {};
-  STATE_DATA.forEach(s => {
-    if(s.counties && s.counties.length) countyMap[s.abbr] = new Set(s.counties);
-  });
-
-  // r[3]=state_abbr, r[4]=3-digit county FIPS (populated after next rebuild)
+  // Show all ZIPs in affected states
   let data = ZIP_REF
-    .filter(r => {
-      if(!activeAbbrs.has(r[3])) return false;
-      const cset = countyMap[r[3]];
-      if(cset && cset.size > 0) return cset.has(r[4]);
-      return true; // fallback: show all ZIPs in state when no county data
-    })
+    .filter(r => activeAbbrs.has(r[3]))
     .map(r => {
       const sd = STATE_DATA.find(s=>s.abbr===r[3])||{};
       // Expand to full row format: [zip,city,state,abbr,level,weather,ground,express,start,end,pct,days,note]
@@ -611,7 +600,7 @@ async function loadLiveAlerts(){
     return;
   }
   alerts.sort((a,b_)=>(a.properties.severity==='Extreme'?0:1)-(b_.properties.severity==='Extreme'?0:1));
-  window._liveAbbrs=new Set();alerts.forEach(a=>xStates(a).forEach(s=>window._liveAbbrs.add(s)));{const _ex=new Set(STATE_DATA.map(s=>s.abbr));window._liveAbbrs.forEach(ab=>{if(!_ex.has(ab)){const _f=alerts.find(a=>xStates(a).includes(ab));if(_f){const _q=_f.properties;STATE_DATA.push({abbr:ab,state:ab,counties:(_q.areaDesc||"").split(";").map(s=>s.trim()).filter(Boolean).slice(0,20),risk:"MODERATE",ends_iso:_q.expires||""});}}});}if(typeof renderStates==="function")renderStates();if(typeof renderMap==="function")renderMap();
+  window._liveAbbrs=new Set();alerts.forEach(a=>xStates(a).forEach(s=>window._liveAbbrs.add(s)));{const _ex=new Set(STATE_DATA.map(s=>s.abbr));window._liveAbbrs.forEach(ab=>{if(!_ex.has(ab)){const _f=alerts.find(a=>xStates(a).includes(ab));if(_f){const _q=_f.properties;STATE_DATA.push({abbr:ab,state:ab,counties:(_q.areaDesc||"").split(";").map(s=>s.trim()).filter(Boolean).slice(0,20),risk:"MODERATE",ends_iso:_q.expires||""});}}});}if(typeof renderStates==="function")renderStates();if(typeof renderMap==="function")renderMap();if(typeof filterZips==="function")filterZips();
   wrap.innerHTML=alerts.map((a,i)=>{
     const p=a.properties,imp=impactOf(p.severity,p.event),sts=xStates(a);
     const chaffected=sts.filter(s=>TRANSIT[s]);
