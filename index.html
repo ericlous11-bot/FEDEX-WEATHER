@@ -331,6 +331,7 @@ const STATE_DATA = [
   {state:"Michigan",abbr:"MI",impact:52,level:"MODERATE-HIGH",weather:"Flood Warning issued April 12 at 12:22PM EDT until April 17 at 11:00AM EDT by NWS Gaylord MI",noaa:"ACTIVE",ground:"POSS. IMPACT",express:"POSS. IMPACT",start:"Sun Apr 12  9:00 AM CDT",end:"Fri Apr 17  6:00 AM CDT",ends_iso:"2026-04-17T11:00:00-04:00",pct:52,counties:["Arenac", "Dickinson", "Florence", "Marinette", "Menominee", "Wexford"],note:"Live NOAA alert — verify at fedex.com/service-alerts"},
   {state:"North Dakota",abbr:"ND",impact:52,level:"MODERATE-HIGH",weather:"Flood Warning issued April 12 at 11:20AM CDT by NWS Grand Forks ND",noaa:"ACTIVE",ground:"POSS. IMPACT",express:"POSS. IMPACT",start:"Wed Apr 15  3:30 AM CDT",end:"—",ends_iso:"",pct:52,counties:["Grand Forks", "Marshall", "Polk", "Walsh"],note:"Live NOAA alert — verify at fedex.com/service-alerts"}
 ];
+STATE_DATA.forEach(function(s){if((s.weather||'').toLowerCase().indexOf('red flag')>=0){s.level='LOW';s.ground='MONITORING';s.express='MONITORING';s.impact=25;s.pct=25;}});
 
 // ZIP: [zip,city,state,abbr,level,weather,ground,express,start,end,pct,days,note]
 let ZIP_REF = [];  // loaded from zips.json
@@ -562,6 +563,7 @@ function renderChart(){
 // ═══ LIVE NOAA ═══════════════════════════════════════════
 function impactOf(sev,ev){
   const e=(ev||'').toLowerCase();
+  if(e.includes('red flag'))return{lbl:'LOW',status:'MONITORING',bc:'#ccc'};
   if(sev==='Extreme')return{lbl:'EXTREME',status:'SUSPENDED',bc:'#C00000'};
   if(sev==='Severe'){
     if(e.includes('tornado')||e.includes('blizzard')||e.includes('ice'))return{lbl:'HIGH',status:'DELAYED',bc:'#E26B0A'};
