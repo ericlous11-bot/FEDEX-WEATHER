@@ -204,15 +204,18 @@ td.center{text-align:center}
     <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;padding:10px 0">
       <div>
         <div style="font-size:0.72rem;font-weight:700;color:#555;margin-bottom:4px">Day 1 (24hr) Snow ≥4"</div>
-        <a href="https://www.wpc.ncep.noaa.gov/pwpf/wwd_accum_probs.php?fpd=24&amp;ptype=snow&amp;amt=4" target="_blank" rel="noopener"><img id="wpc-day1-img" src="" alt="WPC Day 1 Snow" style="max-width:380px;width:100%;border:1px solid #ddd;border-radius:4px" onerror="this.style.display=&#39;none&#39;"></a>
+        <a href="https://www.wpc.ncep.noaa.gov/pwpf/wwd_accum_probs.php?fpd=24&amp;ptype=snow&amp;amt=4" target="_blank" rel="noopener"><img id="wpc-day1-img" src="" alt="WPC Day 1 Snow" style="max-width:380px;width:100%;border:1px solid #ddd;border-radius:4px"></a>
+        <span id="wpc-day1-img-ph" style="display:none;color:#888;font-size:0.85em">No forecast image available</span>
       </div>
       <div>
         <div style="font-size:0.72rem;font-weight:700;color:#555;margin-bottom:4px">Day 2 (48hr) Snow ≥4"</div>
-        <a href="https://www.wpc.ncep.noaa.gov/pwpf/wwd_accum_probs.php?fpd=48&amp;ptype=snow&amp;amt=4" target="_blank" rel="noopener"><img id="wpc-day2-img" src="" alt="WPC Day 2 Snow" style="max-width:380px;width:100%;border:1px solid #ddd;border-radius:4px" onerror="this.style.display=&#39;none&#39;"></a>
+        <a href="https://www.wpc.ncep.noaa.gov/pwpf/wwd_accum_probs.php?fpd=48&amp;ptype=snow&amp;amt=4" target="_blank" rel="noopener"><img id="wpc-day2-img" src="" alt="WPC Day 2 Snow" style="max-width:380px;width:100%;border:1px solid #ddd;border-radius:4px"></a>
+        <span id="wpc-day2-img-ph" style="display:none;color:#888;font-size:0.85em">No forecast image available</span>
       </div>
       <div>
         <div style="font-size:0.72rem;font-weight:700;color:#555;margin-bottom:4px">Day 3 (72hr) Snow ≥4"</div>
-        <a href="https://www.wpc.ncep.noaa.gov/pwpf/wwd_accum_probs.php?fpd=72&amp;ptype=snow&amp;amt=4" target="_blank" rel="noopener"><img id="wpc-day3-img" src="" alt="WPC Day 3 Snow" style="max-width:380px;width:100%;border:1px solid #ddd;border-radius:4px" onerror="this.style.display=&#39;none&#39;"></a>
+        <a href="https://www.wpc.ncep.noaa.gov/pwpf/wwd_accum_probs.php?fpd=72&amp;ptype=snow&amp;amt=4" target="_blank" rel="noopener"><img id="wpc-day3-img" src="" alt="WPC Day 3 Snow" style="max-width:380px;width:100%;border:1px solid #ddd;border-radius:4px"></a>
+        <span id="wpc-day3-img-ph" style="display:none;color:#888;font-size:0.85em">No forecast image available</span>
       </div>
     </div>
     <div style="font-size:0.7rem;color:#777;padding:4px 0 6px">Source: <a href="https://www.wpc.ncep.noaa.gov/pwpf/wwd_accum_probs.php" target="_blank" rel="noopener" style="color:#1565C0">WPC Probabilistic Winter Precipitation Guidance</a> &middot; Probability of ≥4" snow accumulation</div>
@@ -757,21 +760,39 @@ function renderSPC(){
 }
 // ═══ INIT ════════════════════════════════════════════════
 function renderWPC(){
-  var now=new Date();
-  var utcH=now.getUTCHours(),utcD=now.getUTCDate(),utcM=now.getUTCMonth()+1,utcY=now.getUTCFullYear();
   var pad=function(n){return String(n).padStart(2,'0');};
-  var runY=utcY,runM=utcM,runD=utcD,runH;
-  if(utcH>=15){runH=12;}
-  else if(utcH>=3){runH=0;}
-  else{var prev=new Date(Date.UTC(utcY,utcM-1,utcD-1));runY=prev.getUTCFullYear();runM=prev.getUTCMonth()+1;runD=prev.getUTCDate();runH=12;}
-  var run=String(runY)+pad(runM)+pad(runD)+pad(runH);
+  function getRunStr(offsetRuns){
+    var now=new Date();
+    var utcH=now.getUTCHours(),utcM=now.getUTCMonth()+1,utcD=now.getUTCDate(),utcY=now.getUTCFullYear();
+    var runH;
+    var runY=utcY,runM=utcM,runD=utcD;
+    if(utcH>=15){runH=12;}
+    else if(utcH>=3){runH=0;}
+    else{var prev=new Date(Date.UTC(utcY,utcM-1,utcD-1));runY=prev.getUTCFullYear();runM=prev.getUTCMonth()+1;runD=prev.getUTCDate();runH=12;}
+    var runDate=new Date(Date.UTC(runY,runM-1,runD,runH,0,0));
+    runDate=new Date(runDate.getTime()-offsetRuns*12*3600*1000);
+    return String(runDate.getUTCFullYear())+pad(runDate.getUTCMonth()+1)+pad(runDate.getUTCDate())+pad(runDate.getUTCHours());
+  }
   var base='https://www.wpc.ncep.noaa.gov/pwpf_24hr/prb_24hsnow_ge04_';
-  var d1=document.getElementById('wpc-day1-img');
-  var d2=document.getElementById('wpc-day2-img');
-  var d3=document.getElementById('wpc-day3-img');
-  if(d1)d1.src=base+run+'f024.gif';
-  if(d2)d2.src=base+run+'f048.gif';
-  if(d3)d3.src=base+run+'f072.gif';
+  var suffixes=['f024','f048','f072'];
+  var ids=['wpc-day1-img','wpc-day2-img','wpc-day3-img'];
+  ids.forEach(function(id,i){
+    var el=document.getElementById(id);
+    if(!el)return;
+    var attempt=0;
+    function tryLoad(){
+      if(attempt>2){
+        el.style.display='none';
+        var ph=document.getElementById(id+'-ph');
+        if(ph)ph.style.display='';
+        return;
+      }
+      el.onerror=function(){attempt++;tryLoad();};
+      el.src=base+getRunStr(attempt)+suffixes[i]+'.gif';
+      el.style.display='';
+    }
+    tryLoad();
+  });
 }
 
 function loadAll(){
