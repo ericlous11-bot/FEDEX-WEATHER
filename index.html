@@ -490,7 +490,7 @@ function renderStates(){
       <td class="center">${tr.chiGround||'—'} day${tr.chiGround===1?'':'s'}</td>
       <td class="center">${tr.chiExpress||'—'} day${tr.chiExpress===1?'':'s'}</td>
       <td class="center"><strong>${s.pct}%</strong></td>
-      <td>${bp(tr.periRisk||'MODERATE')}</td>
+      <td>${bp((s.weather||'').toLowerCase().indexOf('red flag')>=0?'LOW':(tr.periRisk||'MODERATE'))}</td>
       <td>${bn(s.noaa)}</td>
       <td class="td-note" style="font-size:0.7rem" title="${s.note}">${s.note}</td>
     </tr>
@@ -648,35 +648,53 @@ async function loadLiveAlerts(){
   }
   alerts.sort((a,b_)=>(a.properties.severity==='Extreme'?0:1)-(b_.properties.severity==='Extreme'?0:1));
   window._liveAbbrs=new Set();alerts.forEach(a=>xStates(a).forEach(s=>window._liveAbbrs.add(s)));{const _ex=new Set(STATE_DATA.map(s=>s.abbr));window._liveAbbrs.forEach(ab=>{if(!_ex.has(ab)){const _f=alerts.find(a=>xStates(a).includes(ab));if(_f){const _q=_f.properties,_imp=impactOf(_q.severity,_q.event),_pct=(_imp.lbl==="HIGH"||_imp.lbl==="EXTREME")?74:52,_sname=(ZIP_REF.length?(ZIP_REF.find(function(z){return z[3]===ab;})||{})[2]:null)||ab;STATE_DATA.push({abbr:ab,state:_sname,impact:_pct,level:_imp.lbl,weather:_q.headline||_q.event||"Active NOAA Alert",noaa:"ACTIVE",ground:_imp.status,express:_imp.status,start:_q.onset?fmtDt(_q.onset):"—",end:_q.expires?fmtDt(_q.expires):"—",ends_iso:_q.expires||"",pct:_pct,counties:(_q.areaDesc||"").split(";").map(function(s){return s.trim();}).filter(Boolean).slice(0,20),note:"Live NOAA alert — verify at fedex.com/service-alerts"});}}})}if(typeof renderStates==="function")renderStates();if(typeof renderMap==="function")renderMap();if(typeof filterZips==="function")filterZips();const _ks=document.getElementById('k-states');if(_ks)_ks.textContent=STATE_DATA.length;const _nonRfAbbrs=new Set(STATE_DATA.filter(function(s){return(s.weather||'').toLowerCase().indexOf('red flag')<0;}).map(function(s){return s.abbr;}));const _kc=[..._nonRfAbbrs].filter(function(ab){return(TRANSIT[ab]||{}).periRisk==='CRITICAL';}).length;const _kh=[..._nonRfAbbrs].filter(function(ab){return(TRANSIT[ab]||{}).periRisk==='HIGH';}).length;const _kcc=document.getElementById('k-crit');const _khh=document.getElementById('k-high');if(_kcc)_kcc.textContent=_kc;if(_khh)_khh.textContent=_kh;
-  wrap.innerHTML=alerts.map((a,i)=>{
-    const p=a.properties,imp=impactOf(p.severity,p.event),sts=xStates(a);
-    const chaffected=sts.filter(s=>TRANSIT[s]);const _aw=(p.parameters&&p.parameters.AWIPSidentifier&&p.parameters.AWIPSidentifier[0])||"";const _nwsUrl=(_aw.length>3)?"https://forecast.weather.gov/product.php?site="+_aw.slice(-3)+"&issuedby="+_aw.slice(-3)+"&product="+_aw.slice(0,-3)+"&format=CI&version=1&glossary=0":"https://www.weather.gov/";
+  wrap.innerHTML=(()=>{
+  const groups={};
+  alerts.forEach(a=>{
+    const p=a.properties,ev=p.event||'Weather Alert';
+    if(!groups[ev]){groups[ev]={event:ev,alerts:[],severity:p.severity,imp:impactOf(p.severity,ev),allSts:new Set(),chaffected:new Set()};}
+    const sRank={Extreme:4,Severe:3,Moderate:2,Minor:1};
+    if((sRank[p.severity]||0)>(sRank[groups[ev].severity]||0)){groups[ev].severity=p.severity;groups[ev].imp=impactOf(p.severity,ev);}
+    xStates(a).forEach(s=>{groups[ev].allSts.add(s);if(TRANSIT[s])groups[ev].chaffected.add(s);});
+    groups[ev].alerts.push(a);
+  });
+  return Object.values(groups).map((g,i)=>{
+    const imp=g.imp,sts=[...g.allSts],ch=[...g.chaffected];
+    const details=g.alerts.map((a,j)=>{
+      const p=a.properties,aSts=xStates(a);
+      const _aw=(p.parameters&&p.parameters.AWIPSidentifier&&p.parameters.AWIPSidentifier[0])||'';
+      const _nwsUrl=(_aw.length>3)?'https://forecast.weather.gov/product.php?site='+_aw.slice(-3)+'&issuedby='+_aw.slice(-3)+'&product='+_aw.slice(0,-3)+'&format=CI&version=1&glossary=0':'https://www.weather.gov/';
+      const counties=(p.areaDesc||'').split(';').map(s=>s.trim()).filter(Boolean);
+      return`<div style="border-top:1px solid #f0f0f0;padding:8px 14px;font-size:0.71rem;background:${j%2?'#fafafa':'#fff'}">
+        <div style="font-weight:600;margin-bottom:3px">${p.senderName||'NWS'} &nbsp;<span style="font-weight:400;color:#888">${aSts.join(', ')}</span></div>
+        <div style="color:#555;margin-bottom:2px"><strong>Areas:</strong> ${counties.slice(0,12).join('; ')}${counties.length>12?` <em>+${counties.length-12} more</em>`:''}</div>
+        <div style="color:#555"><strong>Onset:</strong> ${fmtDt(p.onset)} &nbsp;|&nbsp; <strong>Expires:</strong> ${fmtDt(p.expires)}</div>
+        <div style="margin-top:5px"><a href="${_nwsUrl}" target="_blank" style="color:#4a90d9;font-size:0.68rem">🔗 View on weather.gov ↗</a></div>
+      </div>`;
+    }).join('');
     return`<div class="alert-card" style="border-left-color:${imp.bc}">
       <div class="ac-hdr" onclick="tog(${i})">
         <div>
-          <div class="ac-title">${p.event||'Weather Alert'}</div>
-          <div class="ac-meta">${(p.areaDesc||'').substring(0,110)}${(p.areaDesc||'').length>110?'…':''}</div>
-          ${chaffected.length?`<div style="margin-top:4px;font-size:0.7rem;color:#C00000;font-weight:700">⚠ Affects Chicago routes: ${chaffected.join(', ')}</div>`:''}
+          <div class="ac-title">${g.event}</div>
+          <div class="ac-meta">${g.alerts.length} alert${g.alerts.length>1?'s':''} · ${sts.join(', ')}</div>
+          ${ch.length?`<div style="margin-top:4px;font-size:0.7rem;color:#C00000;font-weight:700">⚠️ Chicago routes: ${ch.join(', ')}</div>`:''}
         </div>
         <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
-          ${b(p.severity,p.severity==='Extreme'?'b-extreme':'b-high')}
+          ${b(g.severity,g.severity==='Extreme'?'b-extreme':'b-high')}
           ${b('FedEx: '+imp.status,imp.lbl==='HIGH'||imp.lbl==='EXTREME'?'b-delayed':'b-impacted')}
           <span class="chevron" id="ac${i}">▼</span>
         </div>
       </div>
       <div class="ac-body" id="ab${i}">
-        <div class="ac-field"><strong>⚡ Hazard:</strong> ${p.event}</div>
-        <div class="ac-field"><strong>🗺 States:</strong> ${sts.length?sts.join(', '):'See area description'}</div>
-        ${chaffected.length?`<div class="ac-field" style="color:#C00000"><strong>🍕 Chicago Routes Affected:</strong> ${chaffected.map(s=>`${s} (${(TRANSIT[s]||{}).chiGround||'?'}d ground)`).join(', ')}</div>`:'<div class="ac-field" style="color:#107C41"><strong>🍕 Chicago Routes:</strong> Not directly on tracked routes</div>'}
-        <div class="ac-field"><strong>📅 Onset:</strong> ${fmtDt(p.onset)}</div>
-        <div class="ac-field"><strong>📅 Expires:</strong> ${fmtDt(p.expires)}</div>
-        <div class="ac-field"><strong>🚚 FedEx Ground:</strong> ${imp.status} &nbsp;|&nbsp; <strong>✈ Express:</strong> ${imp.status}</div>
-        <div class="ac-field"><strong>📊 Interrup. Probability:</strong> ${imp.lbl==='EXTREME'?'85–95%':imp.lbl==='HIGH'?'70–82%':'55–70%'}</div>
-        <div class="ac-field"><strong>🏢 Issued by:</strong> ${p.senderName||'—'}</div>
-        <div class="ac-field"><a href="${_nwsUrl}" target="_blank" style="color:#4a90d9;font-size:0.8rem;text-decoration:none;">🔗 View on weather.gov ↗</a></div>
+        <div class="ac-field"><strong>⚡ Hazard:</strong> ${g.event} &nbsp;&middot;&nbsp; <strong>${g.alerts.length}</strong> active alert${g.alerts.length>1?'s':''}</div>
+        <div class="ac-field"><strong>🗺 States:</strong> ${sts.join(', ')||'Multiple'}</div>
+        ${ch.length?`<div class="ac-field" style="color:#C00000"><strong>📦 Chicago Routes:</strong> ${ch.map(s=>`${s} (${(TRANSIT[s]||{}).chiGround||'?'}d ground)`).join(', ')}</div>`:`<div class="ac-field" style="color:#107C41"><strong>📦 Chicago Routes:</strong> Not directly on tracked routes</div>`}
+        <div class="ac-field" style="font-weight:600;padding-bottom:4px;border-bottom:1px solid #eee">Details by issuing office:</div>
+        ${details}
       </div>
     </div>`;
   }).join('');
+})();
 }
 
 
@@ -719,8 +737,8 @@ function loadAll(){
     const iso = STATE_DATA[i].ends_iso;
     if(iso && iso.length > 5){ try{ if(new Date(iso).getTime() < _now) STATE_DATA.splice(i,1); }catch(e){} }
   }
-  const crit=STATE_DATA.filter(s=>(TRANSIT[s.abbr]||{}).periRisk==='CRITICAL').length;
-  const high=STATE_DATA.filter(s=>(TRANSIT[s.abbr]||{}).periRisk==='HIGH').length;
+  const crit=[...new Set(STATE_DATA.filter(s=>(s.weather||'').toLowerCase().indexOf('red flag')<0).map(s=>s.abbr))].filter(ab=>(TRANSIT[ab]||{}).periRisk==='CRITICAL').length;
+  const high=[...new Set(STATE_DATA.filter(s=>(s.weather||'').toLowerCase().indexOf('red flag')<0).map(s=>s.abbr))].filter(ab=>(TRANSIT[ab]||{}).periRisk==='HIGH').length;
   document.getElementById('k-crit').textContent=crit;
   document.getElementById('k-high').textContent=high;
   const ks=document.getElementById('k-states');
