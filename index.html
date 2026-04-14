@@ -620,7 +620,7 @@ function impactOf(sev,ev){
 function xStates(a){
   const US=new Set('AL,AZ,AR,CA,CO,CT,DE,FL,GA,ID,IL,IN,IA,KS,KY,LA,ME,MD,MA,MI,MN,MS,MO,MT,NE,NV,NH,NJ,NM,NY,NC,ND,OH,OK,OR,PA,RI,SC,SD,TN,TX,UT,VT,VA,WA,WV,WI,WY,DC,AK,HI,PR'.split(','));
   const s=new Set();
-  (a.properties.affectedZones||[]).forEach(z=>{const m=z.match(/\/([A-Z]{2})[ZC]\d/);if(m)s.add(m[1]);});
+  (a.properties.affectedZones||[]).forEach(z=>{const m=z.match(/\/([A-Z]{2})[ZC]\d/);if(m&&US.has(m[1]))s.add(m[1]);});
   ((a.properties.areaDesc||'').match(/\b([A-Z]{2})\b/g)||[]).forEach(x=>{if(US.has(x))s.add(x);});
   return[...s];
 }
