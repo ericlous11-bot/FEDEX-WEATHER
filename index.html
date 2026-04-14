@@ -199,7 +199,25 @@ td.center{text-align:center}
         <div style="margin-top:14px;font-size:0.7rem;color:#aaa">Source: NOAA live alerts · Excludes Red Flag &amp; routine advisories</div>
       </div>
     </div>
+  </div>  <div class="sec-hdr" id="wpc-hdr">&#10052; WPC Winter Weather Outlook</div>
+  <div class="sec-body" id="wpc-wrap">
+    <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;padding:10px 0">
+      <div>
+        <div style="font-size:0.72rem;font-weight:700;color:#555;margin-bottom:4px">Day 1 (24hr) Snow ≥4"</div>
+        <a href="https://www.wpc.ncep.noaa.gov/pwpf/wwd_accum_probs.php?fpd=24&amp;ptype=snow&amp;amt=4" target="_blank" rel="noopener"><img id="wpc-day1-img" src="" alt="WPC Day 1 Snow" style="max-width:380px;width:100%;border:1px solid #ddd;border-radius:4px" onerror="this.style.display=&#39;none&#39;"></a>
+      </div>
+      <div>
+        <div style="font-size:0.72rem;font-weight:700;color:#555;margin-bottom:4px">Day 2 (48hr) Snow ≥4"</div>
+        <a href="https://www.wpc.ncep.noaa.gov/pwpf/wwd_accum_probs.php?fpd=48&amp;ptype=snow&amp;amt=4" target="_blank" rel="noopener"><img id="wpc-day2-img" src="" alt="WPC Day 2 Snow" style="max-width:380px;width:100%;border:1px solid #ddd;border-radius:4px" onerror="this.style.display=&#39;none&#39;"></a>
+      </div>
+      <div>
+        <div style="font-size:0.72rem;font-weight:700;color:#555;margin-bottom:4px">Day 3 (72hr) Snow ≥4"</div>
+        <a href="https://www.wpc.ncep.noaa.gov/pwpf/wwd_accum_probs.php?fpd=72&amp;ptype=snow&amp;amt=4" target="_blank" rel="noopener"><img id="wpc-day3-img" src="" alt="WPC Day 3 Snow" style="max-width:380px;width:100%;border:1px solid #ddd;border-radius:4px" onerror="this.style.display=&#39;none&#39;"></a>
+      </div>
+    </div>
+    <div style="font-size:0.7rem;color:#777;padding:4px 0 6px">Source: <a href="https://www.wpc.ncep.noaa.gov/pwpf/wwd_accum_probs.php" target="_blank" rel="noopener" style="color:#1565C0">WPC Probabilistic Winter Precipitation Guidance</a> &middot; Probability of ≥4" snow accumulation</div>
   </div>
+
   <div class="sec-hdr">Live NOAA Active Alerts <span style="font-weight:400;font-size:0.7rem;opacity:.75">(api.weather.gov — refreshed on load)</span></div>
   <div class="sec-body" id="live-alerts-wrap">
     <div class="loading"><div class="spinner"></div>Fetching live NOAA data…</div>
@@ -665,7 +683,7 @@ async function loadLiveAlerts(){
     return;
   }
   alerts.sort((a,b_)=>(a.properties.severity==='Extreme'?0:1)-(b_.properties.severity==='Extreme'?0:1));
-  window._liveAbbrs=new Set();alerts.forEach(a=>xStates(a).forEach(s=>window._liveAbbrs.add(s)));{const _ex=new Set(STATE_DATA.map(s=>s.abbr));window._liveAbbrs.forEach(ab=>{if(!_ex.has(ab)){const _f=alerts.find(a=>xStates(a).includes(ab));if(_f){const _q=_f.properties,_imp=impactOf(_q.severity,_q.event),_pct=(_imp.lbl==="HIGH"||_imp.lbl==="EXTREME")?74:52,_sname=(ZIP_REF.length?(ZIP_REF.find(function(z){return z[3]===ab;})||{})[2]:null)||ab;STATE_DATA.push({abbr:ab,state:_sname,impact:_pct,level:_imp.lbl,weather:_q.headline||_q.event||"Active NOAA Alert",noaa:"ACTIVE",ground:_imp.status,express:_imp.status,start:_q.onset?fmtDt(_q.onset):"—",end:_q.expires?fmtDt(_q.expires):"—",ends_iso:_q.expires||"",pct:_pct,counties:(_q.areaDesc||"").split(";").map(function(s){return s.trim();}).filter(Boolean).slice(0,20),note:"Live NOAA alert — verify at fedex.com/service-alerts"});}}})}if(typeof renderStates==="function")renderStates();if(typeof renderMap==="function")renderMap();if(typeof filterZips==="function")filterZips();if(typeof renderSPC==="function")renderSPC();const _ks=document.getElementById('k-states');if(_ks)_ks.textContent=STATE_DATA.length;const _nonRfAbbrs=new Set(STATE_DATA.filter(function(s){return(s.weather||'').toLowerCase().indexOf('red flag')<0;}).map(function(s){return s.abbr;}));const _kc=[..._nonRfAbbrs].filter(function(ab){return(TRANSIT[ab]||{}).periRisk==='CRITICAL';}).length;const _kh=[..._nonRfAbbrs].filter(function(ab){return(TRANSIT[ab]||{}).periRisk==='HIGH';}).length;const _kcc=document.getElementById('k-crit');const _khh=document.getElementById('k-high');if(_kcc)_kcc.textContent=_kc;if(_khh)_khh.textContent=_kh;
+  window._liveAbbrs=new Set();alerts.forEach(a=>xStates(a).forEach(s=>window._liveAbbrs.add(s)));{const _ex=new Set(STATE_DATA.map(s=>s.abbr));window._liveAbbrs.forEach(ab=>{if(!_ex.has(ab)){const _f=alerts.find(a=>xStates(a).includes(ab));if(_f){const _q=_f.properties,_imp=impactOf(_q.severity,_q.event),_pct=(_imp.lbl==="HIGH"||_imp.lbl==="EXTREME")?74:52,_sname=(ZIP_REF.length?(ZIP_REF.find(function(z){return z[3]===ab;})||{})[2]:null)||ab;STATE_DATA.push({abbr:ab,state:_sname,impact:_pct,level:_imp.lbl,weather:_q.headline||_q.event||"Active NOAA Alert",noaa:"ACTIVE",ground:_imp.status,express:_imp.status,start:_q.onset?fmtDt(_q.onset):"—",end:_q.expires?fmtDt(_q.expires):"—",ends_iso:_q.expires||"",pct:_pct,counties:(_q.areaDesc||"").split(";").map(function(s){return s.trim();}).filter(Boolean).slice(0,20),note:"Live NOAA alert — verify at fedex.com/service-alerts"});}}})}if(typeof renderStates==="function")renderStates();if(typeof renderMap==="function")renderMap();if(typeof filterZips==="function")filterZips();if(typeof renderSPC==="function")renderSPC();if(typeof renderWPC==="function")renderWPC();const _ks=document.getElementById('k-states');if(_ks)_ks.textContent=STATE_DATA.length;const _nonRfAbbrs=new Set(STATE_DATA.filter(function(s){return(s.weather||'').toLowerCase().indexOf('red flag')<0;}).map(function(s){return s.abbr;}));const _kc=[..._nonRfAbbrs].filter(function(ab){return(TRANSIT[ab]||{}).periRisk==='CRITICAL';}).length;const _kh=[..._nonRfAbbrs].filter(function(ab){return(TRANSIT[ab]||{}).periRisk==='HIGH';}).length;const _kcc=document.getElementById('k-crit');const _khh=document.getElementById('k-high');if(_kcc)_kcc.textContent=_kc;if(_khh)_khh.textContent=_kh;
   wrap.innerHTML=(()=>{
   const groups={};
   alerts.forEach(a=>{
@@ -738,6 +756,24 @@ function renderSPC(){
   }).join('');
 }
 // ═══ INIT ════════════════════════════════════════════════
+function renderWPC(){
+  var now=new Date();
+  var utcH=now.getUTCHours(),utcD=now.getUTCDate(),utcM=now.getUTCMonth()+1,utcY=now.getUTCFullYear();
+  var pad=function(n){return String(n).padStart(2,'0');};
+  var runY=utcY,runM=utcM,runD=utcD,runH;
+  if(utcH>=15){runH=12;}
+  else if(utcH>=3){runH=0;}
+  else{var prev=new Date(Date.UTC(utcY,utcM-1,utcD-1));runY=prev.getUTCFullYear();runM=prev.getUTCMonth()+1;runD=prev.getUTCDate();runH=12;}
+  var run=String(runY)+pad(runM)+pad(runD)+pad(runH);
+  var base='https://www.wpc.ncep.noaa.gov/pwpf_24hr/prb_24hsnow_ge04_';
+  var d1=document.getElementById('wpc-day1-img');
+  var d2=document.getElementById('wpc-day2-img');
+  var d3=document.getElementById('wpc-day3-img');
+  if(d1)d1.src=base+run+'f024.gif';
+  if(d2)d2.src=base+run+'f048.gif';
+  if(d3)d3.src=base+run+'f072.gif';
+}
+
 function loadAll(){
   // Purge expired STATE_DATA entries on every load/refresh
   const _now = Date.now();
@@ -762,7 +798,7 @@ function loadAll(){
     });
     if(cur) sel.value=cur;
   }
-  renderSPC();
+  renderSPC();if(typeof renderWPC==="function")renderWPC();
   filterZips();
   renderStates();
   renderMap();
