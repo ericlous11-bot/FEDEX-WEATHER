@@ -601,12 +601,13 @@ function renderMap(){
 }
 function renderChart(){
   // Perishable Risk Score = interruption% × ground transit factor
-  const scored=STATE_DATA.filter(s=>{
-    const _tot=ZIP_REF.filter(z=>z[3]===s.abbr).length;
-    if(!_tot)return false;
-    const _aff=ZIP_REF.filter(z=>z[3]===s.abbr&&new Set(s.counties).has(z[4])).length;
-    return _aff/_tot>0.5;
-  }).map(s=>{
+  // Deduplicate by state, keeping highest-impact entry; skip red-flag-only alerts
+  const seen={};
+  STATE_DATA.forEach(s=>{
+    if((s.weather||'').toLowerCase().indexOf('red flag')>=0)return;
+    if(!seen[s.abbr]||(s.pct||0)>(seen[s.abbr].pct||0))seen[s.abbr]=s;
+  });
+  const scored=Object.values(seen).map(s=>{
     const tr=TRANSIT[s.abbr]||{chiGround:2};
     const score=Math.round(s.pct*(1+((tr.chiGround||2)-1)*0.15));
     return{...s,score,tr};
@@ -620,10 +621,16 @@ function renderChart(){
     const w=Math.round(s.score/max*100);
     const bg=BAR_C[s.level]||'#4D148C';
     const pr=(TRANSIT[s.abbr]||{}).periRisk||'MODERATE';
-    return`<div class="bar-row">
+    const ctyList=(s.counties||[]).slice().sort().join(', ')||'—';
+    const ctyCount=(s.counties||[]).length;
+    return`<div class="bar-row" style="flex-wrap:wrap">
       <div class="bar-lbl" title="${s.state}">${s.state} (${s.abbr})</div>
       <div class="bar-bg"><div class="bar-fill" style="width:${w}%;background:${bg}">${s.score}</div></div>
       <div style="width:90px;flex-shrink:0">${bp(pr)}</div>
+      <div style="width:100%;padding:2px 0 5px 8px;font-size:0.7rem;color:#555">
+        <strong>Alert:</strong> ${s.weather||'—'} &nbsp;|&nbsp;
+        <strong>Counties (${ctyCount}):</strong> ${ctyList}
+      </div>
     </div>`;
   }).join('');
 }
